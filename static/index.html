@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title></title>
+    <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.js"></script>
+    <script type="text/javascript" src="/socket.io/socket.io.js"></script>
+    <script type="text/javascript">
+      $(document).ready(  function () {
+          var socket = io.connect()
+          $('button').click(function () {
+            var name = prompt('Enter your name to join the cool kids')
+            if (name != null) {
+              document.getElementById('click').innerHTML = 'Leave chat room by logging out'
+              socket.emit('join_chat', {user: name}) //1
+            }
+          })
+          socket.on('new_user', function (data) { //4
+            let new_p = document.createElement('p')
+            new_p.setAttribute("id", `${data.id}`)
+            new_p.innerHTML = `${data.user} ${data.id}`
+            document.getElementById('room').appendChild(new_p)
+          })
+          socket.on('all_users', function (data) { //5
+            for (var key in data.all_users) {
+              let new_p = document.createElement('p')
+              new_p.setAttribute("id", `${key}`)
+              new_p.innerHTML = `${data.all_users[key]} ${key}`
+              document.getElementById('room').appendChild(new_p)
+            }
+          })
+
+        $('#log_out').click(function () {
+            let child = document.getElementById(`${socket.id}`)
+            document.getElementById('room').removeChild(child)
+            socket.emit('remove_user', {user_id: socket.id}) //6
+          })
+          socket.on('update', function (data) { //9
+            let child = document.getElementById(`${data.user_id}`)
+            document.getElementById('room').removeChild(child)
+          })
+    })
+    </script>
+    <style media="screen">
+      button{
+        position: absolute;
+        left: 50%;
+        top: 50%;
+        transform: translate(-50% -50%);
+        text-align: center;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="room">
+
+    </div>
+    <button id="click">Join the cool kids</button>
+    <a href="#" id="log_out">Log Out</a>
+  </body>
+</html>
